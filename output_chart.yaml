@@ -1,0 +1,155 @@
+NAME: debugapp
+LAST DEPLOYED: Sat Aug 24 12:16:07 2024
+NAMESPACE: default
+STATUS: pending-install
+REVISION: 1
+TEST SUITE: None
+USER-SUPPLIED VALUES:
+{}
+
+COMPUTED VALUES:
+affinity: {}
+fullnameOverride: ""
+image:
+  pullPolicy: IfNotPresent
+  repository: debugapp
+  tag: latest
+imagePullSecrets: []
+ingress:
+  annotations: {}
+  className: rf-nginx
+  enabled: true
+  hosts:
+  - host: debugapp.example-devops.com
+    paths:
+    - path: /
+      pathType: Prefix
+  tls: []
+nameOverride: ""
+nodeSelector: {}
+persistence:
+  accessModes:
+  - ReadWriteOnce
+  enabled: true
+  size: 1Gi
+  storageClass: rf-storage-rw
+replicaCount: 1
+resources: {}
+service:
+  name: http
+  port: 80
+  protocol: TCP
+  targetPort: 3000
+  type: ClusterIP
+tolerations: []
+
+HOOKS:
+MANIFEST:
+---
+# Source: debugapp/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: debugapp-storage
+  labels:
+    app: debugapp
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: rf-storage-rw
+---
+# Source: debugapp/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "debugapp"
+  labels:
+    helm.sh/chart: debugapp
+    app.kubernetes.io/name: debugapp
+    app.kubernetes.io/instance: debugapp
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: debugapp
+    app.kubernetes.io/instance: debugapp
+---
+# Source: debugapp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debugapp
+  labels:
+    helm.sh/chart: debugapp
+    app.kubernetes.io/name: debugapp
+    app.kubernetes.io/instance: debugapp
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: debugapp
+      app.kubernetes.io/instance: debugapp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: debugapp
+        app.kubernetes.io/instance: debugapp
+    spec:
+      containers:
+        - name: debugapp
+          image: "debugapp:latest"
+          ports:
+            - containerPort: 3000
+              name: http
+          volumeMounts:
+            - mountPath: /app/storage
+              name: storage
+            - mountPath: /app/logs
+              name: logs
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: debugapp-storage
+        - name: logs
+          emptyDir: {}
+---
+# Source: debugapp/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "debugapp"
+  labels:
+    helm.sh/chart: debugapp
+    app.kubernetes.io/name: debugapp
+    app.kubernetes.io/instance: debugapp
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ingressClassName: rf-nginx
+  rules:
+    - host: "debugapp.example-devops.com"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: debugapp
+                port:
+                  number: 80
+

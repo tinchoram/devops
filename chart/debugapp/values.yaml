@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: debugapp
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+  protocol: TCP
+  name: http
+
+ingress:
+  enabled: true
+  className: "rf-nginx"
+  annotations: {}
+  hosts:
+    - host: debugapp.example-devops.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+persistence:
+  enabled: true
+  storageClass: "rf-storage-rw"
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
