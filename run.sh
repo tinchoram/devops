@@ -11,5 +11,5 @@ cd debugApp
 # Set image in Dockerfile
 sed -i '' "s|^FROM .*|FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}|" Dockerfile
 
-# Construir la imagen Docker
+# build Docker image
 docker build -t debugapp:latest .

@@ -1,6 +1,6 @@
 # CI/CD Pipeline Automation
 
-This repository contains automation scripts and configurations to build, deploy, and harden a Node.js application in a Kubernetes environment. The automation is designed to be run in a CI/CD pipeline.
+This repository contains automation scripts and configurations to build, deploy, and harden a Node.js application in a Kubernetes environment.
 
 ## Task
 
